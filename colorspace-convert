@@ -1,0 +1,85 @@
+#!/usr/bin/env python
+from PIL import Image
+from sys import argv
+from os import system
+
+def put_pixel(pixel, char):
+  if type(pixel)==int:
+    (r,g,b)=(pixel, pixel, pixel)
+  else:
+    (r,g,b)=(pixel[0], pixel[1], pixel[2])
+
+  if (char==' '):
+    r=r+1
+    g=g-1
+    b=b-1
+  elif (char== '	'):
+    r=r-1
+    g=g+1
+    b=b-1
+  elif (char=='\n'):
+    r=r-1
+    g=g-1
+    b=b+1
+
+  return (r,g,b)
+
+print
+print "    Colorspace - convert"
+print
+print "    Tool for saving whitespace program into colorspace image"
+print
+print "(C) GNU GPLv2+ 2010 Sebastian Krzyszkowiak and Agata Kurczewska"
+print "---------------------------------------------------------------"
+
+if len(argv)<4:
+  print "Usage: "+argv[0]+" file.ws source.png result.png"
+  exit(0)
+
+im = Image.open(argv[2])
+im = im.convert("L")
+data = im.getdata()
+
+newdata = []
+chars = []
+
+f = open(argv[1], "r")
+i=0
+for line in f.readlines():
+  for char in line:
+    if (char==' ') or (char=='\t') or (char=='\n'):
+      chars.append(char)
+
+if len(chars)>len(data):
+  print "Image not big enough."
+  exit(0)
+
+n=len(data)/len(chars)
+if (n<1):
+  n=1
+
+for char in chars:
+  newdata.append(put_pixel(data[i], char))
+  i=i+1
+  for j in range(1,n):
+    newdata.append(put_pixel(data[i], ''))
+    i=i+1
+f.close()
+
+#print "n: " + str(n)
+#print "i: " + str(i)
+#print "len(chars): " + str(len(chars))
+#print "len(data): " + str(len(data))
+#print "len(newdata): " + str(len(newdata))
+
+while (i<len(data)):
+  newdata.append(put_pixel(data[i], ''))
+  i=i+1
+
+#print "len(newdata): " + str(len(newdata))
+
+im2 = Image.new("RGB", im.size)
+im2.putdata(newdata)
+im2.save(argv[3], "PNG")
+
+print "Done."
